@@ -193,9 +193,7 @@ Now we've osCommerce installed without injected bugs.
 1. Clone the project at `https://github.com/xescuder/buggy-oscommerce`.
 2. Copy the content of `src/public_html` into the server folder `/var/www/html/oscommerce` **overwriting** all files.
 
-```diff
-For all the injected bugs in the application, please refer to the [Change log](CHANGELOG.md)
-```
+**For all the injected bugs in the application, please refer to the [Change log](CHANGELOG.md)**
 
 After the injected bugs you can simulate more bugs updating the database, using _PhpMyAdmin_.
 
