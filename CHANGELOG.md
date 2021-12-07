@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Functional bugs
 
+#### Account
+
+1. Account creation bugs:
+
+   - Use an incorrect email
+   - Postcode is mandatory field, but it can be entered empty (line 111 commented)
+   - Password confirmation can be different
+   - Gender is saved always as female
+   - Date of birth is not saved, it always saves current date.
+
+1. Password forgotten option fails, it **does not send any email**.
+
 #### Product search and listing
 
 1. Text Displaying 1 to n (**of 1 products**) (instead of the real total of items). Example: Select on _Manufacturers_ the value _Fox_.
@@ -16,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    ![Displaying 1 to n of 1 products](images/bugs/bug-total-shown-of-one.png)
 
 1. **Sort** product by name not working. Example: DVD Movies > Action, and click two times _Product name_ for sorting
-
+1. **Quick find**. It only finds if product name starts with the entered text. Example: Try to search "Mary" (of "There's Something About Mary")
+   and try "Courage"
 1. **Advanced search** using _from price to price_ criteria not working. It does not found anything.
 
 #### Product pricing
@@ -63,10 +76,6 @@ Example:
 
 1. Billing address is always the delivery address.
 
-#### Accounts
-
-1. Password forgotten option **not sending email**.
-
 ### Localization bugs
 
 1. Top right button **Cart contents** is incorrectly labelled as **Cart contend**
@@ -75,55 +84,3 @@ Example:
 ### Security bugs
 
 1. Password is not validated on login! (you can use any password)
-
-### Product manufacturer bugs
-
-1. Broken URL manufacturers (table \*manufacturers_info\*\*). Examples: Select a product of Hardware > Printers, and click on Manufacturer Info at right panel (HP).
-2.
-
-### Product search and listing
-
-1. **Quick find**. It forces to search in exact case for product name. Example: Try to search "Mary" (of "There's Something About Mary")
-   src/public_html/advanced_search_result.php
-
-   Added binary at like to be case sensitive (line 231):
-
-   ```
-   $where_str .= "(pd.products_name like '%" . tep_db_input($keyword) . "%' or p.products_model like '%" . tep_db_input($keyword) . "%' or m.manufacturers_name like '%" . tep_db_input($keyword) . "%'";
-           if (isset($HTTP_GET_VARS['search_in_description']) && ($HTTP_GET_VARS['search_in_description'] == '1')) $where_str .= " or pd.products_description like '%" . tep_db_input($keyword) . "%'";
-           $where_str .= ')';
-   ```
-
-   to:
-
-   ```
-   $where_str .= "(pd.products_name like binary '%" . tep_db_input($keyword) . "%' or p.products_model like '%" . tep_db_input($keyword) . "%' or m.manufacturers_name like '%" . tep_db_input($keyword) . "%'";
-   ```
-
-   src/public_html/advanced_search_result.php (266)
-
-   ```
-
-   if ($pfrom > 0) $where_str .= " and (IF(s.status, s.specials_new_products_price, p.products_price) >= " . (double)$pfrom . ")";
-
-   ```
-
-### Product checkout
-
-1. Billing address is the same as delivery.
-
-   /public_html/checkout_confirmation.php. Comments about order not added
-
-   211: <td><?php echo tep_address_format($order->delivery['format_id'], $order->delivery, 1, ' ', '<br />'); ?></td>
-
-   - Gender only Female, Male not possible
-
-### Account and login
-
-#### Account creation
-
-1. Use an incorrect email (line 91 commented)
-1. Postcode is mandatory field, but it can be entered empty (line 111 commented)
-1. Password confirmation can be different (line 164 commented)
-1. Gender is saved always like female (line 180 forced to 'f')
-1. Date of birth is not saved, it always save current date. (line 181 changed to assignation date('m/d/Y'))
