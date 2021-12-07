@@ -166,7 +166,7 @@ You can fulfill easily these prerequisites using next steps:
    chmod -R 777 oscommerce/
    ```
 
-6. Open in a browswer the url: `<your-server>/oscommerce/install/` and push **Start**. Set the default values.
+6. Open in a browser the url: `<your-server>/oscommerce/install/` and push **Start**. Set the default values.
 
    - Database server: localhost
    - Username: root

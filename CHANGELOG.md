@@ -7,71 +7,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2021-08-02
 
-### Shopping cart bugs
+### Functional bugs
 
-1. Always shown 1 cart item at top (includes/header.php)
-1. Try to click remove link on my cart contents for one item. It doesn't work (see next on how to remove it incorrectly)
+#### Product search and listing
 
-   ```php
-   $products_name .= '<br /><br />' . tep_draw_input_field('cart_quantity[]', $products[$i]['quantity'], 'size="4"') . tep_draw_hidden_field('products_id[]', $products[$i]['id']) . tep_draw_button(IMAGE_BUTTON_UPDATE, 'refresh') . '&nbsp;&nbsp;&nbsp;' . TEXT_OR . '<a href="' . tep_href_link(FILENAME_SHOPPING_CART, 'products_id=' . $products[$i]['id'] . '&action=remove_products') . '">' . TEXT_REMOVE . '</a>';
-   ```
+1. Text Displaying 1 to n (**of 1 products**) (instead of the real total of items). Example: Select on _Manufacturers_ the value _Fox_.
 
-1. If -1 is set in one item, all items are removed!, but…
-1. Try to add a new item product, the shopping cart reappears!
-1. We set 0 and press update. The price item still is shown in cart!
-1. Total price is round! (shopping cart box)
+   ![Displaying 1 to n of 1 products](images/bugs/bug-total-shown-of-one.png)
 
-   Root cause: ` src/public_html/includes/classes/shopping_cart.php`
+1. **Sort** product by name not working. Example: DVD Movies > Action, and click two times _Product name_ for sorting
 
-   ```
-     function show_total() {
-     $this->calculate();
+1. **Advanced search** using _from price to price_ criteria not working. It does not found anything.
 
-     return $this->total;
-   }
-   ```
+#### Product pricing
 
-   To:
+1. Change from _U.S. Dollar_ to _Euro_ at **Currencies** combobox. You'll see the prices are the same for euro and dollar.
 
-   ```
+   ![Currency change does not change prices](images/bugs/bug-currency-does-not-change-price.png)
 
-     function show_total() {
-     $this->calculate();
+   ![Currency change does not change prices part 2](images/bugs/bug-currency-does-not-change-price-2.png)
 
-     return ceil($this->total);
-   }
-   ```
+#### Product rating
 
-1. Cart contents top button with spelling mistake
+Select a product, push **Reviews** and then **Write Review**
 
-## Product specials bugs
+Example:
 
-1. Add a special product into shopping cart, and see that price applied is without discount!
+![Product rating example](images/bugs/product-review-rating.png)
 
-   src/public_html/includes/classes/shopping_cart.php (line 338), comment code
+1. **Rating is stored substracted by one**.
 
-   ```src/public_html/includes/classes/shopping_cart.php
-   $specials_query = tep_db_query("select specials_new_products_price from " . TABLE_SPECIALS . " where products_id = '" . (int)$prid . "' and status = '1'");
-          if (tep_db_num_rows($specials_query)) {
-            $specials = tep_db_fetch_array($specials_query);
-            $products_price = $specials['specials_new_products_price'];
-   }
-   ```
+   ![Bad product rating](images/bugs/bug-product-rating.png)
 
-### Products review bugs
+2. The reviews are not approved before being shown. Select again the product (with same or another user). You'll see the review comments.
 
-1. Rating is not reviewed really, showing all revisions (not only approved)
-   `r.reviews.status = 1 > removed ‘and condition’`
-1. Rating is saved with one minus!
+#### Shopping cart
+
+1. Header top shows a maximum of 1 cart item, even though there are more items.
+
+   ![Only one total items](images/bugs/bug-cart-only-one-total.png)
+
+2. You can use **Update** to set a negative number of items for a product. See as the final price is negative!
+3. Final price of shopping cart is always rounded up!
+
+   ![Final price round](images/bugs/bug-ceiling-total-price.png)
+
+4. Specials prices are not applied!
+
+   ![Special prices not applied](images/bugs/bug-special-price.png)
+
+5. Setting a -1 for an item, seems like all the shopping cart is removed. If you add another item, the shopping cart is shown again.
+6. Setting a 0 for an item does not remove it.
+
+#### Checkout
+
+1. Billing address is always the delivery address.
+
+#### Accounts
+
+1. Password forgotten option **not sending email**.
+
+### Localization bugs
+
+1. Top right button **Cart contents** is incorrectly labelled as **Cart contend**
+2. Top right button **My account** is incorrectly labelled as **Mi cuenta**
+
+### Security bugs
+
+1. Password is not validated on login! (you can use any password)
 
 ### Product manufacturer bugs
 
 1. Broken URL manufacturers (table \*manufacturers_info\*\*). Examples: Select a product of Hardware > Printers, and click on Manufacturer Info at right panel (HP).
 2.
-
-### Currencies
-
-1. Select Euro currency at bottom right, and see that prices of products are not changed
 
 ### Product search and listing
 
@@ -92,8 +100,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    $where_str .= "(pd.products_name like binary '%" . tep_db_input($keyword) . "%' or p.products_model like '%" . tep_db_input($keyword) . "%' or m.manufacturers_name like '%" . tep_db_input($keyword) . "%'";
    ```
 
-1. **Advanced search** from price to price not working
-
    src/public_html/advanced_search_result.php (266)
 
    ```
@@ -101,37 +107,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    if ($pfrom > 0) $where_str .= " and (IF(s.status, s.specials_new_products_price, p.products_price) >= " . (double)$pfrom . ")";
 
    ```
-
-### Product lists bugs
-
-1. Sort product by name not working (Example: DVD Movies > Action, click Product name for sorting two times)
-
-   /public_html/index.php. From:
-
-   ```
-   $listing_sql .= " order by pd.products_name " . ($sort_order == 'd' ? 'desc' : '');
-   ```
-
-   To:
-
-   ```
-   $listing_sql .= " order by pd.products_name " . ($sort_order == 'd' ? 'desc' : 'desc');
-   ```
-
-1. Text Displaying 1 to n (of 1 products) (instead of M)
-
-   src/public_html/includes/languages/english.php (168):
-
-   ```
-   define('TEXT_DISPLAY_NUMBER_OF_PRODUCTS', 'Displaying <strong>%d</strong> to <strong>%d</strong> (of <strong>%d</strong> products)');
-
-   ```
-
-   ```
-   define('TEXT_DISPLAY_NUMBER_OF_PRODUCTS', 'Displaying <strong>%d</strong> to <strong>%d</strong> (of <strong>1</strong> products)');
-   ```
-
-   Example: DVD Movies > Action, and look at bottom page
 
 ### Product checkout
 
@@ -152,37 +127,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 1. Password confirmation can be different (line 164 commented)
 1. Gender is saved always like female (line 180 forced to 'f')
 1. Date of birth is not saved, it always save current date. (line 181 changed to assignation date('m/d/Y'))
-
-#### Login
-
-1. Security flaw. Error in username, error in password separated
-
-   - Added two error labels for username or password:
-     (src/public_html/includes/languages/english/modules/content/login/cm_login_form.php)
-
-   define('MODULE_CONTENT_LOGIN_TEXT_USERNAME_ERROR', 'Error: No match for E-Mail Address.');
-   define('MODULE_CONTENT_LOGIN_TEXT_PASSWORD_ERROR', 'Error: No match for Password.');
-
-   - Check error in username and check error in password:
-
-   `src/public_html/includes/modules/content/login/cm_login_form.php`
-
-   ```
-   if (!tep_db_num_rows($customer_query)) {
-            $messageStack->add('login', MODULE_CONTENT_LOGIN_TEXT_USERNAME_ERROR);
-            $error = true;
-          } else {
-            $customer = tep_db_fetch_array($customer_query);
-            if (!tep_validate_password($password, $customer['customers_password'])) {
-              $error = true;
-              $messageStack->add('login', MODULE_CONTENT_LOGIN_TEXT_PASSWORD_ERROR);
-            } else {
-              ...
-            }
-          }
-        }
-
-        /*if ($error == true) {
-          $messageStack->add('login', MODULE_CONTENT_LOGIN_TEXT_LOGIN_ERROR);
-        }*/
-   ```
